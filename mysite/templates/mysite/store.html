@@ -13,8 +13,11 @@
 <!-- ========================= SECTION PAGETOP ========================= -->
 <section class="section-pagetop bg">
     <div class="container">
+      {% if 'search' in request.path %} <!--Verifica se o endpoint search/ foi utilizado no request caso sim vamos instagramar a exibição.-->
+      <h2 class="title-page">Search Results</h2>
+      {% else %}
         <h2 class="title-page">Our Store</h2>
-        
+      {% endif %}  
     </div> <!-- container //  -->
     </section>
     <!-- ========================= SECTION INTRO END// ========================= -->
@@ -128,13 +131,16 @@
     
     <header class="border-bottom mb-4 pb-3">
             <div class="form-inline">
-                <span class="mr-md-auto"><b>{{ products.count }}</b> Items found </span>
+                <span class="mr-md-auto"><b>{{ product_count }}</b> Items found </span>
                 
             </div>
     </header><!-- sect-heading -->
     
     <div class="row">
-        {% for x in products %}
+      {% if not paged_products %}
+        <h2>No results found. Please try again.</h2>
+      {% else %}
+        {% for x in paged_products %}
         <div class="col-md-4">
             <figure class="card card-product-grid">
                 <div class="img-wrap"> 
@@ -150,22 +156,41 @@
                             <!-- <del class="price-old">$1980</del> Pensar na lógica disso aqui...-->
                         </div> <!-- price-wrap.// -->
                     </div>
-                    <a href="#" class="btn btn-block btn-primary">Add to Cart </a>
+                    <a href="{{ x.get_url }}" class="btn btn-block btn-primary">View Details </a><!--O método get_url está acessível qualquer objeto da classe produto-->
                 </figcaption>
             </figure>
         </div> <!-- col.// -->    
         {% endfor %}
+      {% endif %}  
     </div> <!-- row end.// -->
     
     
     <nav class="mt-4" aria-label="Page navigation sample">
+      {% if paged_products.has_other_pages %}  <!--Esse método ai verifica se há mais produtos que o exibido no grid da página caso sim, mostra-se o page_item...-->
+      
       <ul class="pagination">
-        <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
-        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item"><a class="page-link" href="#">Next</a></li>
+         {% if paged_products.has_previous %}
+           <li class="page-item"><a class="page-link" href="?={{ paged_products.previous_page_number }}">Previous</a></li><!--Vc precisa do ? pq não tá usando uma url pattern.-->
+         {% else %}  
+           <li class="page-item disabled"><a class="page-link" href="#">Previous</a></li>
+         {% endif %}
+
+         {% for x in paged_products.paginator.page_range %} <!--Tudo classe built in do paginator, serve para varrer essa estrutura-->
+           {% if paged_products.number == x %}<!--O .number é a pagina atual sendo exibida, se o número casar com o range, então não há redirecionamento-->
+             <li class="page-item active"><a class="page-link" href="#">{{ x }}</a></li> <!--A página não precisa redirecionar pois coincide com o índice-->
+           {% else %}
+             <li class="page-item"><a class="page-link" href="?page={{ x }}">{{ x }}</a></li> <!--Aqui ela tá disponível mas está sem o stroke na cor, não é a página atual--> 
+           {% endif %} 
+         {% endfor %}  
+        
+        
+         {% if paged_products.has_next %}           
+           <li class="page-item"><a class="page-link" href="?page={{ paged_products.next_page_number }}">Next</a></li>
+         {% else %}
+           <li class="page-item disabled"><a class="page-link" href="#">Next</a></li>
+         {% endif %}
       </ul>
+      {% endif %} 
     </nav>
     
         </main> <!-- col.// -->

@@ -35,6 +35,7 @@ INSTALLED_APPS = [
     # My apps
     'mysite',
     'accounts',
+    'cart',
     
     # Third-party apps
     'bootstrap5',
@@ -72,6 +73,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'mysite.context_processors.menu_links',
+                'cart.context_processors.cart_icon',
             ],
         },
     },

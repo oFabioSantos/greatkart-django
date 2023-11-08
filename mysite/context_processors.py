@@ -1,4 +1,5 @@
 from .models import *
+from cart.models import *
 
 
 def menu_links(request):
@@ -6,4 +7,5 @@ def menu_links(request):
     
     links = Category.objects.all()
     return dict(aurelio=links)  # links aqui é o nome de uma key que recebe links. Poderia ser qualquer nome. Esse obj tem acesso a função que tá no models
-    
+
+
