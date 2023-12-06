@@ -148,3 +148,12 @@ STATIC_ROOT = BASE_DIR = '/static/'  # Diz ao Django onde todos os arquivos est√
 STATICFILES_DIRS = [
     'mysite/static',
 ]
+
+#  SMTP config
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'fabio.santos@aluno.faculdadeimpacta.com.br'
+EMAIL_HOST_PASSWORD = 'x8492vsfbo'
+EMAIL_USE_TLS = True  #  TLS - Transport Layer Security for encryption
+

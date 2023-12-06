@@ -122,12 +122,24 @@ $(document).ready(function() {
 	<div class="col-lg-3 col-sm-6 col-8 order-2 order-lg-3">
 				<div class="d-flex justify-content-end mb-3 mb-lg-0">
 					<div class="widget-header">
-						<small class="title text-muted">Welcome guest!</small>
-						<div> 
-							<a href="./signin.html">Sign in</a> <span class="dark-transp"> | </span>
-							<a href="./register.html"> Register</a>
+						
+						{% if user.is_authenticated %}
+						  <small class="title text-muted">Welcome, {{ user.first_name.title }}</small>
+						  <div> 
+							<a href="{% url 'accounts:dashboard' %}">Dashboard</a><span class="dark-transp"> | </span>
+							<a href="{% url 'accounts:logout_view' %}">Log out</a> <span class="dark-transp"> </span>	
+							 						
 						</div>
+
+						{% else %}  
+						<div> 
+							<small class="title text-muted">Welcome guest!</small>
+							<a href="{% url 'accounts:login_view' %}">Sign in</a> <span class="dark-transp"> | </span>
+							<a href="{% url 'accounts:register' %}"> Register</a>
+						</div>
+						{% endif %}
 					</div>
+					
 					<a href="{% url 'cart:cart' %}" class="widget-header pl-3 ml-3">
 						<div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
 						<span class="badge badge-pill badge-danger notify">{{ quantidade }}</span><!--Isso aqui é o retorno(dict) da função no context processor-->
