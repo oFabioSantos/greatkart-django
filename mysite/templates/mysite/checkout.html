@@ -1,0 +1,183 @@
+{% extends 'mysite/base.html' %}
+
+{% load bootstrap5 %}
+{% load static %}
+
+{% block title %} Checkout {% endblock title %}
+
+
+{% block content %}
+
+
+
+<!-- ============================ COMPONENT 2 ================================= -->
+<section class="section-content padding-y bg">
+<div class="container">
+    
+
+<div class="row">
+    <main class="col-md-8">
+
+<article class="card mb-4">
+<div class="card-body">
+<h4 class="card-title mb-4">Review cart</h4>
+<div class="row">
+    <div class="col-md-6">
+        {% for x in cart_items %}
+        <figure class="itemside  mb-4">
+            <div class="aside"><a href="{% url 'cart:cart' %}"><img src="{{ x.product.images.url}}" class="border img-sm"></a><p>{{ x.product.product_name }}</p></div><!--O <A> deve conter o link da img e a view-->                
+            <figcaption class="info">
+                <p></p>
+                <span class="text-muted"></span>
+            </figcaption>
+        </figure>
+        {% endfor %}
+    </div> <!-- col.// -->    
+</div> <!-- row.// -->
+</div> <!-- card-body.// -->
+</article> <!-- card.// -->
+
+
+<article class="card mb-4">
+<div class="card-body">
+<h4 class="card-title mb-4">Contact info</h4>
+<form action="" method="POST">
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="form-group col-sm-6">
+            <label>Frst name</label>
+            <input type="text" placeholder="Type here" class="form-control" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label>Last name</label>
+            <input type="text" placeholder="Type here" class="form-control" required>
+        </div>        
+        <div class="form-group col-sm-4">
+            <label>CPF</label>
+            <input type="text" placeholder="" class="form-control" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label>Phone</label>
+            <input type="text" value="11 " class="form-control" required>
+        </div>
+        <div class="form-group col-sm-6">
+            <label>Email</label>
+            <input type="email" placeholder="example@gmail.com" class="form-control" required>
+        </div>
+    </div> <!-- row.// -->	
+
+</div> <!-- card-body.// -->
+</article> <!-- card.// -->
+
+
+<article class="card mb-4">
+<div class="card-body">
+<h4 class="card-title mb-4">Delivery info</h4>      
+
+    <div class="row">
+            <div class="form-group col-sm-6">
+                <label>State*</label>
+                <select name="" class="form-control" required>
+                    <option value=""></option>                    
+                </select>
+            </div>
+            <div class="form-group col-sm-6">
+                <label>City*</label>
+                <input type="text" placeholder="Type here" class="form-control" required>
+            </div>
+            <div class="form-group col-sm-8">
+                <label>Street*</label>
+                <input type="text" placeholder="Type here" class="form-control" required>
+            </div>
+            <div class="form-group col-sm-4">
+                <label>Number</label>
+                <input type="text" placeholder="" class="form-control" required>
+            </div>
+            <div class="form-group col-sm-6">
+                <label>Complement</label>
+                <input type="text" placeholder="Type here" class="form-control" required>
+            </div>
+            <div class="form-group col-sm-6">
+                <label>Town</label>
+                <input type="text" placeholder="Type here" class="form-control" required>
+            </div>
+            
+            <div class="form-group col-sm-12">
+                <label>Notes</label>
+                <textarea name="order_note" rows="3"  class="form-control"></textarea>
+            </div>
+    </div> <!-- row.// -->
+</div> <!-- card-body.// -->
+</article> <!-- card.// -->
+
+
+<article class="accordion" id="accordion_pay">
+<div class="card">
+    <header class="card-header">
+        <img src="./images/misc/payment-paypal.png" class="float-right" height="24"> 
+        <label class="form-check collapsed" data-toggle="collapse" data-target="#pay_paynet">
+            <input class="form-check-input" name="payment-option" checked type="radio" value="option2">
+            <h6 class="form-check-label"> 
+                Paypal 
+            </h6>
+        </label>
+    </header>
+    <div id="pay_paynet" class="collapse show" data-parent="#accordion_pay">
+    <div class="card-body">
+        <p class="text-center text-muted">Connect your PayPal account and use it to pay your bills. You'll be redirected to PayPal to add your billing information.</p>
+        <p class="text-center">
+            <a href="#"><img src="./images/misc/btn-paypal.png" height="32"></a>
+            <br><br>
+        </p>
+    </div> <!-- card body .// -->
+    </div> <!-- collapse .// -->
+</div> <!-- card.// -->
+<div class="card">
+<header class="card-header">
+    <img src="./images/misc/payment-card.png" class="float-right" height="24">  
+    <label class="form-check" data-toggle="collapse" data-target="#pay_payme">
+        <input class="form-check-input" name="payment-option" type="radio" value="option2">
+        <h6 class="form-check-label"> Credit Card  </h6>
+    </label>
+</header>
+
+</article> 
+<!-- accordion end.// -->
+
+    </main> <!-- col.// -->
+    <aside class="col-md-4">
+        <div class="card">
+    <div class="card-body">
+        <dl class="dlist-align">
+          <dt>Total price:</dt>
+          <dd class="text-right">${{ total }}</dd>
+        </dl>
+        <dl class="dlist-align">
+          <dt>Tax:</dt>
+          <dd class="text-right">${{ tax }}</dd>
+        </dl>
+        <dl class="dlist-align">
+          <dt>Total:</dt>
+          <dd class="text-right text-dark b"><strong>${{ grand_total }}</strong></dd>
+        </dl>
+        <hr>
+        <p class="text-center mb-3">
+            <img src="./images/misc/payments.png" height="26">
+        </p>
+        <button type="submit" name="submit" class="btn btn-primary btn-block"> Place Order </button>
+</form>
+        <a href="{% url 'mysite:store' %}" class="btn btn-light btn-block"> Continue Shopping </a>
+    </div> <!-- card-body.// -->
+    </div> <!-- card.// -->
+    </aside> <!-- col.// -->
+</div> <!-- row.// -->
+
+
+</div> <!-- container .//  -->
+</section>
+
+<!-- ============================ COMPONENT 2 END//  ================================= -->
+    
+{% endblock content %}
+    

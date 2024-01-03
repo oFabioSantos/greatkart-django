@@ -1,5 +1,6 @@
 from django.db import models
 from mysite.models import *
+from accounts.models import *
 
 #  Cart models
 
@@ -19,9 +20,10 @@ class Cart(models.Model):
 class CartItem(models.Model):
     """Representation of itens from the shopping cart"""
     
+    user = models.ForeignKey(Account, on_delete=models.CASCADE, null=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     variations = models.ManyToManyField(ProductVariation, blank=True)  # Isso aqui vai conectar a classe produto
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, null=True)
     quantity = models.PositiveIntegerField(default=0)  
     is_active = models.BooleanField(default=True)
     

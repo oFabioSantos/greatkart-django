@@ -8,6 +8,8 @@ from django.db.models import Q
 
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
+from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth.decorators import login_required
 
 
 # Create your views here.
@@ -97,6 +99,38 @@ def search_product(request):
     }
     
     return render(request, 'mysite/store.html', context)
+
+@login_required(login_url= 'accounts:login_view') #  Isso aqui já faz o redirect
+def checkout(request, total=0, quantity=0, cart_items=None):
+    """Retorna a página de checkout"""   
+    grand_total = 0  # Se não houver objetos no carrinho, o block try não iniciará, por isso precisamos destas variáveis globais.
+    tax = 0
+    try:
+        if request.user.is_authenticated:  # No usuário autenticado, usamos o filtro user instead of cart
+           cart_items = CartItem.objects.filter(user = request.user, is_active=True) 
+        else:   
+            cart = Cart.objects.get(cart_id=_cart_id(request))  # Aqui buscamos um carrinho que esteja relacionado à sessão atual, cookies.    
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True) 
+       
+        for x in cart_items:  # One cart can have multiple products
+            total += (x.product.price * x.quantity) 
+            quantity += x.quantity  # On each loop, the quantity will be incremented by one.
+        tax = (3 * total) / 100  # Nos eua, a alíquota é informada a parte do preço do produto.
+        grand_total = total + tax
+        
+    except ObjectDoesNotExist: 
+        pass #  Ignore for now             
+                 
+    context = {        
+        "cart_items": cart_items,
+        "quantity": quantity,
+        "total": total,
+        "tax": tax,
+        "grand_total": grand_total,
+               
+    }    
+    
+    return render(request, 'mysite/checkout.html', context)
 
     
 

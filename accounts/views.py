@@ -7,6 +7,9 @@ from django.contrib.auth import logout, login, authenticate
 from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import *
+from cart.models import *
+from cart.views import _cart_id
+from mysite.models import *
 
 # Email verification
 from django.contrib.sites.shortcuts import get_current_site
@@ -26,7 +29,7 @@ def register(request):
     if request.method != 'POST':
        form = RegistrationForm()  # Cria uma instância vazia do post
     else:
-        form = RegistrationForm(request.POST)  # Recebe a parada do front
+        form = RegistrationForm(request.POST)  # Recebe um dicionário com toda parada do front
         if form.is_valid():
             # O clean() roda aqui, antes dos dados serem salvos
             first_name = form.cleaned_data['first_name']  #  o form recebe a função cleaned_data que criamos e recebe o método clean() Isso é essencial para autenticações.
@@ -73,15 +76,29 @@ def login_view(request):
        password = request.POST["Password"]
        
        user = auth.authenticate(email=email, password=password) # Valida as informações no banco
-       if user is not None:
+       if user is not None:  # Se o user estiver autenticado
+           try:
+               print('entrando no bloco')  # teste para saber até onde o trecho do código está sendo executado.
+               cart = Cart.objects.get(cart_id=_cart_id(request))  #  Se o user não for vazio, vou chamar a view function _cart_id para criar um carrinho
+               is_cart_item_exists = CartItem.objects.filter(cart=cart).exists() #  Vai catar o session_id do browser e adicionar ao carrinho, ainda sem user autenticado.
+               if is_cart_item_exists:
+                   cart_item = CartItem.objects.filter(cart=cart)   # Relaciona o cart_item ao cart
+                   
+                   for x in cart_item:  #  O cart item deve conter um user id para o caso do cliente não estar logado?
+                       x.user = user
+                       x.save()
+                   
+           except:  
+               print('entrando no block except')                                              
+               pass
            auth.login(request, user)  # auth.login é uma função robusta, responsável por montar a sessão do usuário com as infos obtidas no user.
            messages.success(request, 'You are logged in.')
-           return HttpResponseRedirect(reverse('mysite:store'))    
+           return HttpResponseRedirect(reverse('cart:cart'))  # Ou (reverse('mysite:checkout'))  
        else:
            messages.error(request, 'Invalid credentials. Please try again.')
           # return render(request, 'accounts/login.html')         
        
-@login_required(login_url= 'login')  # aqui consigo dizer para onde ele será redirecionado caso não esteja logado       
+@login_required(login_url= 'accounts:login_view')  # aqui consigo dizer para onde ele será redirecionado caso não esteja logado       
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect(reverse('mysite:index'))
@@ -112,9 +129,9 @@ def dashboard(request):
     return render(request, 'accounts/dashboard.html')
 
 
-def forgot_password(request):  #  Estude essa lógica aqui Fábio, parei em 10:00
+def forgot_password(request):  #  Estude essa lógica aqui Fábio. Tá, essa função representa a lógica de enviar o email para o user.
     if request.method != 'POST':
-       return render(request, 'accounts/forgot_password.html')
+       return render(request, 'accounts/forgot_password.html') # O uid realiza o encode e decode da pk, necessária para linkar o user à função.
     else:
         email = request.POST['email']
         if Account.objects.filter(email=email).exists():  # Verifica se o email vindo do front está contido no campo email do db.
@@ -152,7 +169,7 @@ def renova_password(request,  uidb64, token):  # Essa view é para enviar o emai
      if user is not None and default_token_generator.check_token(user, token):
          request.session['uid'] = uid
          messages.success(request, 'Please reset your password')
-         return redirect('accounts:forgot_password')
+         return redirect('accounts:reset_password')
      else:
          messages.error(request, 'This link has been expired!')
          return HttpResponseRedirect(reverse('accounts:login_view'))

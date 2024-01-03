@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render, redirect
 from .models import *
 from mysite.models import *
 from django.core.exceptions import ObjectDoesNotExist
+from accounts.models import *
 
 
 def _cart_id(request):  #  Essa função cria um cart relacionado à session, retorna para a func add cart que relaciona um produto/cart item e quantidade.
@@ -13,15 +14,14 @@ def _cart_id(request):  #  Essa função cria um cart relacionado à session, re
     cart = request.session.session_key  # Get the data from the session_id
     if not cart:
         cart = request.session.create()  # Creates a session if not exists yet.
-    return cart       
-                
+    return cart                      
 
 
 
 def add_cart(request, product_id):  # Essa função recebe os dados da página detalhes do produto ao clicar em add to the cart.
     """Add a product in the cart, this is the main function"""
     
-    
+      
     # Isso aqui cria o carrinho
     try:
         cart = Cart.objects.get(cart_id=_cart_id(request))  # Creates a cart instance with a session related.
@@ -101,10 +101,13 @@ def add_cart(request, product_id):  # Essa função recebe os dados da página d
 def remove_cart(request, product_id, cart_item_id):
     """Decreases the quantity of a product from the shopping cart"""
     
-    product = get_object_or_404(Product, id=product_id)
-    cart = get_object_or_404(Cart, cart_id=_cart_id(request))  # Se tá chamando uma função, portanto há a necessidade do request.   
+    product = get_object_or_404(Product, id=product_id)    
     try:
-        cart_items = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)        
+        if request.user.is_authenticated:
+            cart_items = CartItem.objects.get(product=product, user=request.user, id=cart_item_id)
+        else: 
+            cart = get_object_or_404(Cart, cart_id=_cart_id(request))  # Se tá chamando uma função, portanto há a necessidade do request. Quando o user é autenticado não precisa disso.  
+            cart_items = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)  # Usuário não autenticado, chamamos cart que chama a create_cart que pega o user.        
         if cart_items.quantity > 1:
             cart_items.quantity -= 1
             cart_items.save()
@@ -119,9 +122,15 @@ def remove_cart_item(request, product_id, cart_item_id):
     """Removes a product from the shopping cart"""
     
     product = get_object_or_404(Product, id=product_id)
-    cart = get_object_or_404(Cart, cart_id=_cart_id(request))
     
-    cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
+    try:
+        if request.user.is_authenticated:
+           cart_item = CartItem.objects.get(product=product, user=request.user, id=cart_item_id)
+        else:
+           cart = get_object_or_404(Cart, cart_id=_cart_id(request)) 
+           cart_item = CartItem.objects.get(product=product, cart=cart, id=cart_item_id)
+    except:
+        pass       
     cart_item.delete()
     
     return redirect('cart:cart')                
@@ -134,8 +143,11 @@ def cart(request, total=0, quantity=0, cart_items=None):  # Isso aqui é o refle
     grand_total = 0  # Se não houver objetos no carrinho, o block try não iniciará, por isso precisamos destas variáveis globais.
     tax = 0
     try:
-        cart = Cart.objects.get(cart_id=_cart_id(request))  # Aqui buscamos um carrinho que esteja relacionado à sessão atual.    
-        cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+        if request.user.is_authenticated:  # No usuário autenticado, usamos o filtro user instead of cart
+           cart_items = CartItem.objects.filter(user = request.user, is_active=True) 
+        else:   
+            cart = Cart.objects.get(cart_id=_cart_id(request))  # Aqui buscamos um carrinho que esteja relacionado à sessão atual, cookies.    
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)   # O carrinho foi criado com o id_session.
        
         for x in cart_items:  # One cart can have multiple products
             total += (x.product.price * x.quantity) 
